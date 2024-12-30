@@ -1,0 +1,8 @@
+msgid "Leton Speed Monitor"
+msgstr "Leton 速度监控"
+
+msgid "Upload Speed"
+msgstr "上传速度"
+
+msgid "Download Speed"
+msgstr "下载速度" 

@@ -1,0 +1,113 @@
+name: Build OpenWrt Plugin
+
+on:
+  push:
+    branches: [ main ]
+    paths-ignore:
+      - '**.md'
+      - '.gitignore'
+      - '.vscode/**'
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      ssh:
+        description: 'SSH connection to Actions'
+        required: false
+        default: 'false'
+
+env:
+  PLUGIN_NAME: luci-app-letonspeedmonitor
+  TZ: Asia/Shanghai
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+      with:
+        path: package/${{ env.PLUGIN_NAME }}
+
+    - name: Setup ccache
+      uses: hendrikmuhs/ccache-action@v1.2
+      with:
+        key: ${{ runner.os }}-${{ github.ref }}-${{ github.sha }}
+        max-size: 2G
+
+    - name: Setup Environment
+      env:
+        DEBIAN_FRONTEND: noninteractive
+      run: |
+        sudo timedatectl set-timezone "$TZ"
+        sudo apt-get update
+        sudo apt-get install -y build-essential ccache ecj fastjar file g++ gawk \
+        gettext git java-propose-classpath libelf-dev libncurses5-dev \
+        libncursesw5-dev libssl-dev python python2.7-dev python3 unzip wget \
+        python3-distutils python3-setuptools python3-dev rsync subversion \
+        swig time xsltproc zlib1g-dev
+        sudo ln -sf /usr/share/zoneinfo/${TZ} /etc/localtime
+
+    - name: Clone OpenWrt
+      run: |
+        git clone --depth 1 https://github.com/openwrt/openwrt.git
+        ln -sf ${{ github.workspace }}/package/${{ env.PLUGIN_NAME }} openwrt/package/
+
+    - name: Update & Install feeds
+      run: |
+        cd openwrt
+        ./scripts/feeds update -a
+        ./scripts/feeds install -a
+
+    - name: Load Custom Configuration
+      run: |
+        cd openwrt
+        cat >> .config <<EOF
+        CONFIG_TARGET_x86=y
+        CONFIG_TARGET_x86_64=y
+        CONFIG_TARGET_x86_64_DEVICE_generic=y
+        CONFIG_PACKAGE_luci-base=y
+        CONFIG_PACKAGE_${{ env.PLUGIN_NAME }}=m
+        CONFIG_PACKAGE_luci=y
+        CONFIG_PACKAGE_luci-ssl=y
+        EOF
+        make defconfig
+
+    - name: Setup Debug Session
+      uses: mxschmitt/action-tmate@v3
+      if: github.event.inputs.ssh == 'true'
+
+    - name: Compile plugin
+      run: |
+        cd openwrt
+        export FORCE_UNSAFE_CONFIGURE=1
+        make package/${{ env.PLUGIN_NAME }}/compile V=s -j$(nproc)
+        find bin/packages/ -name "*${{ env.PLUGIN_NAME }}*.ipk" | xargs -I {} sh -c 'echo "::set-output name=IPK_PATH::{}"'
+
+    - name: Generate release tag
+      id: tag
+      run: |
+        echo "::set-output name=release_tag::$(date +"%Y.%m.%d-%H%M")"
+        touch release.txt
+        echo "发布时间: $(date '+%Y-%m-%d %H:%M:%S')" >> release.txt
+        echo "编译平台: Ubuntu" >> release.txt
+        echo "适用架构: x86_64" >> release.txt
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: ${{ env.PLUGIN_NAME }}_$(date +%Y%m%d)
+        path: openwrt/bin/packages/*/base/${{ env.PLUGIN_NAME }}*.ipk
+
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      if: github.event_name == 'push'
+      with:
+        tag_name: ${{ steps.tag.outputs.release_tag }}
+        files: |
+          openwrt/bin/packages/*/base/${{ env.PLUGIN_NAME }}*.ipk
+          release.txt
+        body_path: release.txt
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

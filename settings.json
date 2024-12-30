@@ -1,0 +1,18 @@
+{
+    "remote.WSL.fileWatcher.polling": true,
+    "remote.WSL.debug": true,
+    "files.watcherExclude": {
+        "**/build/**": true,
+        "**/bin/**": true,
+        "**/tmp/**": true,
+        "**/dl/**": true
+    },
+    "files.exclude": {
+        "**/build/**": true,
+        "**/bin/**": true,
+        "**/tmp/**": true,
+        "**/dl/**": true
+    },
+    "remote.WSL.server.connectThroughLocalhost": true,
+    "remote.WSL.server.connectTimeout": 60
+} 

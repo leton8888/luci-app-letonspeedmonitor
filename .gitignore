@@ -1,0 +1,67 @@
+# OpenWrt Build directories
+/build_dir/
+/bin/
+/dl/
+/feeds/
+/staging_dir/
+/tmp/
+/logs/
+
+# Build files
+*.o
+*.so
+*.a
+*.ko
+*.mod.c
+*.mod.o
+*.order
+*.symvers
+*.cmd
+.tmp_versions/
+
+# Package files
+*.ipk
+*.deb
+*.tar.gz
+*.tar.xz
+
+# Backup files
+*.bak
+*.orig
+*~
+*.swp
+*.swo
+
+# IDE and editor files
+.vscode/*
+!.vscode/settings.json
+.idea/
+*.sublime-workspace
+*.sublime-project
+
+# Compiled Lua files
+*.lua.h
+*.luac
+
+# ccache
+.ccache/
+
+# Config backup files
+.config.old
+.config.backup
+
+# WSL specific
+*.stackdump
+*.lck
+
+# OS specific
+.DS_Store
+.directory
+.Trash-*
+Thumbs.db
+Desktop.ini
+
+# Build logs
+*.log
+build.log
+compile_commands.json

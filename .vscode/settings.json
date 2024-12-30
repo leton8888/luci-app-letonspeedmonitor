@@ -1,0 +1,24 @@
+{
+    "Lua.diagnostics.globals": [
+        "luci",
+        "nixio",
+        "require",
+        "module",
+        "package"
+    ],
+    "Lua.workspace.library": [
+        "/home/leton8888/openwrt/openwrt/feeds/luci/modules/luci-base/luasrc"
+    ],
+    "Lua.workspace.checkThirdParty": false,
+    "files.associations": {
+        "*.htm": "html",
+        "Makefile": "makefile"
+    },
+    "terminal.integrated.defaultProfile.linux": "bash",
+    "terminal.integrated.profiles.linux": {
+        "bash": {
+            "path": "bash",
+            "icon": "terminal-bash"
+        }
+    }
+} 
