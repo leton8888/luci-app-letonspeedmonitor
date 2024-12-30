@@ -77,8 +77,15 @@ jobs:
     - name: Build tools
       run: |
         cd openwrt
-        make tools/install -j$(nproc)
-        make toolchain/install -j$(nproc)
+        make defconfig
+        make tools/install -j1 V=s
+        make toolchain/install -j1 V=s
+        make package/lua/host/compile V=s
+        make package/libdeflate/host/compile V=s
+        make package/libtool/host/compile V=s
+        make package/pkgconf/host/compile V=s
+        make package/zlib/host/compile V=s
+        make package/openssl/host/compile V=s
 
     - name: Setup Debug Session
       uses: mxschmitt/action-tmate@v3
