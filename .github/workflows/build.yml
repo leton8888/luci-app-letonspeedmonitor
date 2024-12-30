@@ -74,6 +74,12 @@ jobs:
         EOF
         make defconfig
 
+    - name: Build tools
+      run: |
+        cd openwrt
+        make tools/install -j$(nproc)
+        make toolchain/install -j$(nproc)
+
     - name: Setup Debug Session
       uses: mxschmitt/action-tmate@v3
       if: github.event.inputs.ssh == 'true'
