@@ -20,6 +20,10 @@ env:
   PLUGIN_NAME: luci-app-letonspeedmonitor
   TZ: Asia/Shanghai
 
+permissions:
+  contents: write
+  packages: read
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -46,8 +50,7 @@ jobs:
         gettext git java-propose-classpath libelf-dev libncurses5-dev \
         libncursesw5-dev libssl-dev python3 python-is-python3 python3-distutils \
         python3-setuptools python3-dev rsync subversion swig time xsltproc zlib1g-dev \
-        automake autoconf libtool
-        sudo ln -sf /usr/share/zoneinfo/${TZ} /etc/localtime
+        automake autoconf libtool gzip unzip wget
 
     - name: Clone OpenWrt
       run: |
@@ -71,6 +74,11 @@ jobs:
         CONFIG_PACKAGE_${{ env.PLUGIN_NAME }}=m
         CONFIG_PACKAGE_luci=y
         CONFIG_PACKAGE_luci-ssl=y
+        CONFIG_PACKAGE_lua=y
+        CONFIG_PACKAGE_liblua=y
+        CONFIG_PACKAGE_libdeflate=y
+        CONFIG_PACKAGE_zlib=y
+        CONFIG_PACKAGE_openssl-util=y
         EOF
         make defconfig
 
@@ -80,16 +88,16 @@ jobs:
         make defconfig
         make tools/install -j1 V=s
         make toolchain/install -j1 V=s
-        make package/lua/host/compile V=s
-        make package/libdeflate/host/compile V=s
-        make package/libtool/host/compile V=s
-        make package/pkgconf/host/compile V=s
-        make package/zlib/host/compile V=s
-        make package/openssl/host/compile V=s
 
-    - name: Setup Debug Session
-      uses: mxschmitt/action-tmate@v3
-      if: github.event.inputs.ssh == 'true'
+    - name: Build dependencies
+      run: |
+        cd openwrt
+        make package/lua/host/compile V=s
+        make package/lua/compile V=s
+        make package/libdeflate/compile V=s
+        make package/zlib/compile V=s
+        make package/openssl/compile V=s
+        make package/libtool/compile V=s
 
     - name: Compile plugin
       run: |
